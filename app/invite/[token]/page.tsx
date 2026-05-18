@@ -4,6 +4,8 @@ import { getEventSettings } from "@/lib/settings";
 import { query } from "@/lib/db";
 import type { Guest, RsvpResponse } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ token: string }>;
 };
