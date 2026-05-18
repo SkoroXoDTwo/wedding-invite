@@ -24,6 +24,8 @@
 
 ## Запуск
 
+### Локально без Docker-приложения
+
 1. Установите зависимости:
 
 ```bash
@@ -68,6 +70,50 @@ Password: admin12345
 ```
 
 Перед публикацией обязательно поменяйте `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET` и `NEXT_PUBLIC_SITE_URL`.
+
+## Docker-деплой
+
+1. Скопируйте `.env.production.example` в `.env.production`.
+
+```bash
+cp .env.production.example .env.production
+```
+
+2. Заполните продакшен-переменные:
+
+```env
+POSTGRES_DB=wedding_invite
+POSTGRES_USER=wedding_admin
+POSTGRES_PASSWORD=strong-postgres-password
+DATABASE_URL=postgresql://wedding_admin:strong-postgres-password@postgres:5432/wedding_invite
+ADMIN_EMAIL=your@email.com
+ADMIN_PASSWORD=strong-admin-password
+AUTH_SECRET=long-random-secret-at-least-32-chars
+NEXT_PUBLIC_SITE_URL=https://your-domain.example
+```
+
+3. Соберите и запустите:
+
+```bash
+docker compose up -d --build
+```
+
+Приложение будет доступно на `http://SERVER_IP:3000`. Для домена обычно ставят Nginx/Caddy как reverse proxy на порт `3000`.
+
+Контейнер приложения сам дождется PostgreSQL и применит `database/schema.sql`. Загруженные фото хранятся в Docker volume `wedding_invite_uploads`, база - в `wedding_invite_pgdata`.
+
+Логи:
+
+```bash
+docker compose logs -f app
+```
+
+Обновление после изменений кода:
+
+```bash
+git pull
+docker compose up -d --build
+```
 
 ## Работа с сайтом
 
