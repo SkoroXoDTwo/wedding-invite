@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: wedding_invite_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wedding_invite
+      POSTGRES_USER: wedding_admin
+      POSTGRES_PASSWORD: wedding_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - wedding_invite_pgdata:/var/lib/postgresql/data
+
+volumes:
+  wedding_invite_pgdata:
