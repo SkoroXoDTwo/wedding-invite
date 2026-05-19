@@ -1,4 +1,18 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap");
+@font-face {
+  font-family: "Wedding Serif";
+  src: url("/fonts/CormorantGaramond-wght.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Wedding Sans";
+  src: url("/fonts/Manrope-wght.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --bg: #fbfaf8;
@@ -8,8 +22,8 @@
   --paper: rgba(255, 252, 247, 0.72);
   --line: rgba(43, 37, 32, 0.22);
   --shadow: 0 24px 70px rgba(68, 47, 35, 0.14);
-  --serif: "Cormorant Garamond", "Bodoni 72", "Bodoni MT", Georgia, serif;
-  --sans: "Manrope", "Segoe UI", Arial, sans-serif;
+  --serif: "Wedding Serif", "Times New Roman", Georgia, serif;
+  --sans: "Wedding Sans", "Segoe UI", Arial, sans-serif;
 }
 
 * {
