@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { adminFetch } from "@/components/admin-shell";
 import { defaultSettings } from "@/lib/default-settings";
-import type { DetailItem, EventSettings, TimelineItem } from "@/lib/types";
+import type { ContactItem, DetailItem, EventSettings, TimelineItem } from "@/lib/types";
 
 function toDateTimeLocal(value: string) {
   const date = new Date(value);
@@ -41,7 +41,22 @@ export default function AdminContentPage() {
     adminFetch("/api/admin/settings")
       .then((response) => response.json())
       .then((data: EventSettings) => {
-        setSettings(data);
+        setSettings({
+          ...defaultSettings,
+          ...data,
+          timeline: data.timeline ?? defaultSettings.timeline,
+          details: data.details ?? defaultSettings.details,
+          contacts: data.contacts ?? defaultSettings.contacts,
+          initials: data.initials ?? defaultSettings.initials,
+          rsvp: {
+            ...defaultSettings.rsvp,
+            ...data.rsvp
+          },
+          dressCode: {
+            ...defaultSettings.dressCode,
+            ...data.dressCode
+          }
+        });
       })
       .catch(() => setMessage("Не удалось загрузить настройки."));
   }, []);
@@ -96,6 +111,29 @@ export default function AdminContentPage() {
     }));
   }
 
+  function patchContact(index: number, patch: Partial<ContactItem>) {
+    setSettings((current) => ({
+      ...current,
+      contacts: current.contacts.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item
+      )
+    }));
+  }
+
+  function addContact() {
+    setSettings((current) => ({
+      ...current,
+      contacts: [...current.contacts, { role: "", name: "", phone: "" }]
+    }));
+  }
+
+  function removeContact(index: number) {
+    setSettings((current) => ({
+      ...current,
+      contacts: current.contacts.filter((_, itemIndex) => itemIndex !== index)
+    }));
+  }
+
   function updateWeddingDate(value: string) {
     const isoDate = value ? new Date(value).toISOString() : "";
 
@@ -140,20 +178,36 @@ export default function AdminContentPage() {
     setIsSaving(true);
     setMessage("");
 
-    const payload: EventSettings = {
-      ...settings,
-      timeline: settings.timeline.filter((item) => item.time || item.title || item.description),
-      details: settings.details.filter((item) => item.title || item.text)
-    };
+    try {
+      const payload: EventSettings = {
+        ...defaultSettings,
+        ...settings,
+        timeline: (settings.timeline ?? []).filter((item) => item.time || item.title || item.description),
+        details: (settings.details ?? []).filter((item) => item.title || item.text),
+        contacts: (settings.contacts ?? []).filter((item) => item.role || item.name || item.phone),
+        rsvp: {
+          ...defaultSettings.rsvp,
+          ...settings.rsvp
+        },
+        dressCode: {
+          ...defaultSettings.dressCode,
+          ...settings.dressCode
+        }
+      };
 
-    const response = await adminFetch("/api/admin/settings", {
-      method: "PUT",
-      body: JSON.stringify(payload)
-    });
-    const result = await response.json().catch(() => ({}));
+      const response = await adminFetch("/api/admin/settings", {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({}));
+      const errorText = [result.error, result.code, result.detail].filter(Boolean).join(": ");
 
-    setIsSaving(false);
-    setMessage(response.ok ? "Настройки сохранены." : result.error || "Не удалось сохранить настройки.");
+      setMessage(response.ok ? "Настройки сохранены." : errorText || `Не удалось сохранить настройки. HTTP ${response.status}`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось сохранить настройки.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -346,6 +400,43 @@ export default function AdminContentPage() {
           </div>
         ))}
       </section>
+
+      <section className="admin-editor-section">
+        <div className="admin-section-head">
+          <h2>Контакты</h2>
+          <button className="admin-btn ghost" type="button" onClick={addContact}>
+            Добавить контакт
+          </button>
+        </div>
+        {settings.contacts.map((item, index) => (
+          <div className="admin-repeat-card" key={index}>
+            <div className="admin-grid">
+              <div className="form-field">
+                <label>Роль</label>
+                <input value={item.role} onChange={(event) => patchContact(index, { role: event.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>Имя</label>
+                <input value={item.name} onChange={(event) => patchContact(index, { name: event.target.value })} />
+              </div>
+              <div className="form-field">
+                <label>Телефон</label>
+                <input
+                  value={item.phone ?? ""}
+                  onChange={(event) => patchContact(index, { phone: event.target.value })}
+                  placeholder="+7 900 000-00-00"
+                />
+              </div>
+            </div>
+            <div className="form-field repeat-actions">
+              <button className="admin-btn ghost" type="button" onClick={() => removeContact(index)}>
+                Удалить
+              </button>
+            </div>
+          </div>
+        ))}
+      </section>
+
       <div className="form-field">
         <label>Финальный текст</label>
         <input value={settings.finalText} onChange={(event) => patch("finalText", event.target.value)} />

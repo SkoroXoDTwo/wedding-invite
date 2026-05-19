@@ -11,6 +11,12 @@ export type DetailItem = {
   text: string;
 };
 
+export type ContactItem = {
+  role: string;
+  name: string;
+  phone?: string;
+};
+
 export type DressCode = {
   intro: string;
   colors: string[];
@@ -39,6 +45,7 @@ export type EventSettings = {
   registryAddress: string;
   registryMapEmbedUrl: string;
   details: DetailItem[];
+  contacts: ContactItem[];
   dressCode: DressCode;
   rsvp: RsvpQuestion;
   finalText: string;

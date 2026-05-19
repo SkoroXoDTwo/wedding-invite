@@ -80,7 +80,7 @@ export function InvitePage({ settings, guest, response }: Props) {
         <p>{settings.venueText}</p>
         <p style={{ marginTop: 10 }}>{settings.venueAddress}</p>
         <div className="map-frame">
-          <iframe src={settings.mapEmbedUrl} title="Карта места проведения" loading="lazy" />
+          <iframe src={settings.mapEmbedUrl} title="Карта ресторана" loading="lazy" />
         </div>
       </section>
 
@@ -99,6 +99,28 @@ export function InvitePage({ settings, guest, response }: Props) {
         <h2 className="section-title">{settings.rsvp.title}</h2>
         <RsvpForm settings={settings} guest={guest} response={response} />
       </section>
+
+      {settings.contacts.length ? (
+        <section className="section reveal contacts">
+          <h2 className="section-title">Контакты</h2>
+          <p className="lead">
+            Если появятся вопросы по дню свадьбы, деталям или маршруту, можно связаться с нами.
+          </p>
+          <div className="contact-list">
+            {settings.contacts.map((contact, index) => {
+              const phoneHref = contact.phone?.replace(/[^\d+]/g, "");
+
+              return (
+                <article className="contact-item" key={`${contact.role}-${contact.name}-${index}`}>
+                  <span>{contact.role}</span>
+                  <strong>{contact.name}</strong>
+                  {contact.phone ? <a href={`tel:${phoneHref}`}>{contact.phone}</a> : null}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="final reveal">{settings.finalText}</section>
     </main>

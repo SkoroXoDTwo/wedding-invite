@@ -1,10 +1,6 @@
-import { InvitePage } from "@/components/invite-page";
-import { getEventSettings } from "@/lib/settings";
+import { PublicInviteLoader } from "@/components/public-invite-loader";
+import { defaultSettings } from "@/lib/default-settings";
 
-export const dynamic = "force-dynamic";
-
-export default async function InviteIndexPage() {
-  const settings = await getEventSettings();
-
-  return <InvitePage settings={settings} />;
+export default function InviteIndexPage() {
+  return <PublicInviteLoader initialSettings={defaultSettings} />;
 }

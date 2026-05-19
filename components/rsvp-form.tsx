@@ -75,14 +75,14 @@ export function RsvpForm({ settings, guest, response }: Props) {
         </div>
       </div>
 
-      <label className="pill-choice" style={{ display: "block", marginTop: 14 }}>
+      <label className={`plus-one-choice ${plusOne ? "active" : ""}`}>
         <input
           type="checkbox"
           checked={plusOne}
           onChange={(event) => setPlusOne(event.target.checked)}
-          style={{ marginRight: 10 }}
         />
-        Буду +1
+        <span aria-hidden="true" />
+        <strong>Буду с гостем</strong>
       </label>
 
       {guest ? null : (
