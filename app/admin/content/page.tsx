@@ -402,6 +402,37 @@ export default function AdminContentPage() {
       </section>
 
       <section className="admin-editor-section">
+        <h2>RSVP</h2>
+        <div className="admin-grid">
+          <div className="form-field">
+            <label>Заголовок блока RSVP</label>
+            <input
+              value={settings.rsvp.title}
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  rsvp: { ...current.rsvp, title: event.target.value }
+                }))
+              }
+            />
+          </div>
+          <div className="form-field">
+            <label>Текст срока ответа</label>
+            <input
+              value={settings.rsvp.deadlineText}
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  rsvp: { ...current.rsvp, deadlineText: event.target.value }
+                }))
+              }
+              placeholder="Будем ждать ответ до 15.10.2026 г."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-editor-section">
         <div className="admin-section-head">
           <h2>Контакты</h2>
           <button className="admin-btn ghost" type="button" onClick={addContact}>

@@ -61,3 +61,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Database error" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  const admin = await assertAdmin();
+  if (!admin.ok) {
+    return NextResponse.json({ error: admin.error }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "guest id is required" }, { status: 400 });
+  }
+
+  try {
+    const result = await query("delete from guests where id = $1 returning id", [id]);
+
+    if (!result.rowCount) {
+      return NextResponse.json({ error: "Гость не найден" }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Database error" }, { status: 500 });
+  }
+}

@@ -48,6 +48,26 @@ export default function AdminGuestsPage() {
     setMessage("Гость создан.");
   }
 
+  async function deleteGuest(id: string, name: string) {
+    if (!window.confirm(`Удалить гостя "${name}"? Его ответ тоже удалится.`)) {
+      return;
+    }
+
+    setMessage("");
+    const response = await adminFetch(`/api/admin/guests?id=${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      setMessage(data.error || "Не удалось удалить гостя.");
+      return;
+    }
+
+    await loadGuests();
+    setMessage("Гость удален.");
+  }
+
   return (
     <>
       <form className="admin-panel" onSubmit={createGuest}>
@@ -82,6 +102,7 @@ export default function AdminGuestsPage() {
               <th>Обращение</th>
               <th>Ссылка</th>
               <th>Статус</th>
+              <th>Действия</th>
             </tr>
           </thead>
           <tbody>
@@ -99,6 +120,15 @@ export default function AdminGuestsPage() {
                     <div style={{ marginTop: 8, wordBreak: "break-all" }}>{link}</div>
                   </td>
                   <td>{latest?.status ?? "Нет ответа"}</td>
+                  <td>
+                    <button
+                      className="admin-btn danger"
+                      type="button"
+                      onClick={() => deleteGuest(guest.id, guest.display_name)}
+                    >
+                      Удалить
+                    </button>
+                  </td>
                 </tr>
               );
             })}
