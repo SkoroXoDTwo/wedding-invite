@@ -82,7 +82,7 @@ export function RsvpForm({ settings, guest, response }: Props) {
           onChange={(event) => setPlusOne(event.target.checked)}
         />
         <span aria-hidden="true" />
-        <strong>Буду с гостем</strong>
+        <strong>Буду +1</strong>
       </label>
 
       {guest ? null : (
