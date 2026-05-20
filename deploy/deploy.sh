@@ -27,7 +27,7 @@ if [[ ! -f ".env.production" ]]; then
   sed -i "s#change-this-postgres-password#${POSTGRES_PASSWORD//\//\\/}#g" .env.production
   sed -i "s#change-this-admin-password#${ADMIN_PASSWORD//\//\\/}#g" .env.production
   sed -i "s#change-this-long-random-secret-at-least-32-chars#${AUTH_SECRET}#g" .env.production
-  sed -i "s#https://your-domain.example#https://${DOMAIN}#g" .env.production
+  sed -i "s#https://a-belkov.ru#https://${DOMAIN}#g" .env.production
 
   cat > .admin-credentials.txt <<CREDS
 Admin URL: https://${DOMAIN}/admin/login

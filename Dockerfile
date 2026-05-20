@@ -1,34 +1,39 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+COPY packages/shared/package.json packages/shared/package.json
+COPY packages/server/package.json packages/server/package.json
+COPY packages/client/package.json packages/client/package.json
+RUN npm install
 
 FROM node:22-alpine AS builder
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=deps /app/packages ./packages
+COPY package.json tsconfig.json ./
+COPY packages ./packages
 RUN npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 appuser
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/database ./database
-COPY --from=builder /app/scripts ./scripts
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=builder /app/packages/server/dist ./packages/server/dist
+COPY --from=builder /app/packages/server/package.json ./packages/server/package.json
+COPY --from=builder /app/packages/client/dist ./packages/client/dist
+COPY database ./database
+COPY scripts ./scripts
+COPY public ./public
 
-RUN mkdir -p public/uploads && chown -R nextjs:nodejs /app
+RUN mkdir -p public/uploads && chown -R appuser:nodejs /app
 
-USER nextjs
+USER appuser
 EXPOSE 3000
 
 CMD ["node", "scripts/docker-entrypoint.mjs"]

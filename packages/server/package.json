@@ -1,0 +1,20 @@
+{
+  "name": "@wedding-invite/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "npm run build -w @wedding-invite/shared && npm run build && node dist/index.js",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@wedding-invite/shared": "0.1.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.1.0",
+    "multer": "^1.4.5-lts.2",
+    "pg": "^8.15.6"
+  }
+}

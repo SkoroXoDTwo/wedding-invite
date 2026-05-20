@@ -33,4 +33,4 @@ if command -v ufw >/dev/null 2>&1; then
 fi
 
 echo "Server base setup is ready."
-echo "Next: clone the repo into /opt/wedding-invite and run deploy/deploy.sh"
+echo "Next step: clone the repo into /opt/wedding-invite and run deploy/deploy.sh"

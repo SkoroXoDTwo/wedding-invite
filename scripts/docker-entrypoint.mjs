@@ -43,7 +43,7 @@ async function migrate() {
 
 await migrate();
 
-const server = spawn("node", ["server.js"], {
+const server = spawn("node", ["packages/server/dist/index.js"], {
   stdio: "inherit",
   env: process.env
 });

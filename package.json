@@ -2,28 +2,32 @@
   "name": "wedding-invite-admin",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "dev": "npm run dev -w @wedding-invite/server",
+    "build": "npm run build -w @wedding-invite/shared && npm run build -w @wedding-invite/server && npm run build -w @wedding-invite/client",
+    "start": "npm run start -w @wedding-invite/server",
+    "lint": "npm run typecheck",
+    "typecheck": "tsc -b packages/shared packages/server packages/client",
     "repair:content": "node scripts/repair-content.mjs"
   },
-  "dependencies": {
-    "next": "^15.3.2",
-    "pg": "^8.15.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.3",
+    "@types/multer": "^1.4.12",
     "@types/node": "^22.15.18",
     "@types/pg": "^8.11.14",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.5.0",
     "eslint": "^9.27.0",
-    "eslint-config-next": "^15.3.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
