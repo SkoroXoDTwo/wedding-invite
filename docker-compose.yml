@@ -1,4 +1,20 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: wedding_invite_caddy
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
   app:
     build:
       context: .
@@ -7,8 +23,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env.production
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,5 +46,7 @@ services:
       - wedding_invite_pgdata:/var/lib/postgresql/data
 
 volumes:
+  caddy_data:
+  caddy_config:
   wedding_invite_pgdata:
   wedding_invite_uploads:

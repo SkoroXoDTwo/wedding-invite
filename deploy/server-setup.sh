@@ -7,7 +7,7 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 apt-get update
-apt-get install -y ca-certificates curl gnupg git nginx certbot python3-certbot-nginx
+apt-get install -y ca-certificates curl gnupg git
 
 install -m 0755 -d /etc/apt/keyrings
 if [[ ! -f /etc/apt/keyrings/docker.gpg ]]; then
@@ -24,8 +24,6 @@ apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 systemctl enable --now docker
-systemctl enable --now nginx
-
 if command -v ufw >/dev/null 2>&1; then
   ufw allow OpenSSH || true
   ufw allow 80/tcp || true

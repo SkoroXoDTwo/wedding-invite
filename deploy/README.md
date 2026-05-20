@@ -43,8 +43,8 @@ The script will:
 - create `.env.production` if missing;
 - generate passwords/secrets;
 - build and start Docker containers;
-- configure Nginx;
-- request HTTPS certificate;
+- start Caddy as the public reverse proxy;
+- request and renew HTTPS certificates automatically through Caddy;
 - print admin credentials.
 
 ## Useful Commands

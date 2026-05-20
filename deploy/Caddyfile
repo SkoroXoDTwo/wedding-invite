@@ -1,0 +1,14 @@
+{
+    email {$ACME_EMAIL}
+}
+
+{$DOMAIN:localhost}, {$WWW_DOMAIN:localhost} {
+    encode gzip zstd
+
+    header /api/* Cache-Control "no-store"
+    header /* Cache-Control "no-store, no-cache, must-revalidate"
+    header /assets/* Cache-Control "public, max-age=31536000, immutable"
+    header /uploads/* Cache-Control "public, max-age=3600"
+
+    reverse_proxy app:3000
+}

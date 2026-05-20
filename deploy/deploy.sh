@@ -4,7 +4,6 @@ set -euo pipefail
 DOMAIN="${DOMAIN:-a-belkov.ru}"
 WWW_DOMAIN="${WWW_DOMAIN:-www.a-belkov.ru}"
 APP_DIR="${APP_DIR:-/opt/wedding-invite}"
-APP_PORT="${APP_PORT:-3000}"
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "Run as root: sudo bash deploy/deploy.sh"
@@ -28,6 +27,9 @@ if [[ ! -f ".env.production" ]]; then
   sed -i "s#change-this-admin-password#${ADMIN_PASSWORD//\//\\/}#g" .env.production
   sed -i "s#change-this-long-random-secret-at-least-32-chars#${AUTH_SECRET}#g" .env.production
   sed -i "s#https://a-belkov.ru#https://${DOMAIN}#g" .env.production
+  sed -i "s#DOMAIN=a-belkov.ru#DOMAIN=${DOMAIN}#g" .env.production
+  sed -i "s#WWW_DOMAIN=www.a-belkov.ru#WWW_DOMAIN=${WWW_DOMAIN}#g" .env.production
+  sed -i "s#ACME_EMAIL=admin@a-belkov.ru#ACME_EMAIL=admin@${DOMAIN}#g" .env.production
 
   cat > .admin-credentials.txt <<CREDS
 Admin URL: https://${DOMAIN}/admin/login
@@ -39,45 +41,13 @@ fi
 
 docker compose up -d --build
 
-cat > "/etc/nginx/sites-available/${DOMAIN}" <<NGINX
-server {
-    listen 80;
-    listen [::]:80;
-    server_name ${DOMAIN} ${WWW_DOMAIN};
-
-    client_max_body_size 16m;
-
-    location / {
-        proxy_pass http://127.0.0.1:${APP_PORT};
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-NGINX
-
-ln -sfn "/etc/nginx/sites-available/${DOMAIN}" "/etc/nginx/sites-enabled/${DOMAIN}"
-rm -f /etc/nginx/sites-enabled/default
-nginx -t
-systemctl reload nginx
-
 echo "Waiting for app..."
 for _ in {1..60}; do
-  if curl -fsS "http://127.0.0.1:${APP_PORT}" >/dev/null; then
+  if docker compose exec -T app node -e "fetch('http://127.0.0.1:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"; then
     break
   fi
   sleep 1
 done
-
-certbot --nginx -d "${DOMAIN}" -d "${WWW_DOMAIN}" --non-interactive --agree-tos --redirect --email "admin@${DOMAIN}" || {
-  echo "Certbot failed. Check that DNS A records point to this server."
-  echo "The app is still available over http://${DOMAIN}"
-  exit 1
-}
-
-systemctl reload nginx
 
 echo "Deploy complete: https://${DOMAIN}"
 if [[ -f .admin-credentials.txt ]]; then
