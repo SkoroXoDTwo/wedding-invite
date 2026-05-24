@@ -31,11 +31,15 @@ function preloadCoverImage(url?: string) {
 
 export function PublicInviteLoader({ token }: { token?: string }) {
   const [payload, setPayload] = useState<InvitePayload | null>(null);
+  const [isPageReady, setIsPageReady] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
     const url = token ? `/api/invite/${encodeURIComponent(token)}` : "/api/public/settings";
+    setPayload(null);
+    setIsPageReady(false);
+    setMessage("");
 
     async function loadInvite() {
       try {
@@ -61,6 +65,9 @@ export function PublicInviteLoader({ token }: { token?: string }) {
 
         setMessage("");
         setPayload(nextPayload);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => setIsPageReady(true));
+        });
       } catch {
         return;
       }
@@ -83,11 +90,32 @@ export function PublicInviteLoader({ token }: { token?: string }) {
 
   if (!payload) {
     return (
-      <main className="invite-loading-page" aria-busy="true">
-        <div className="invite-loading-mark" aria-hidden="true" />
-      </main>
+      <InviteLoadingScreen isHidden={false} />
     );
   }
 
-  return <InvitePage settings={payload.settings} guest={payload.guest} response={payload.response ?? undefined} />;
+  return (
+    <>
+      <div className={`invite-reveal-shell${isPageReady ? " is-ready" : ""}`}>
+        <InvitePage settings={payload.settings} guest={payload.guest} response={payload.response ?? undefined} />
+      </div>
+      <InviteLoadingScreen isHidden={isPageReady} />
+    </>
+  );
+}
+
+function InviteLoadingScreen({ isHidden }: { isHidden: boolean }) {
+  return (
+    <div className={`invite-loading-page${isHidden ? " is-hidden" : ""}`} aria-busy={!isHidden}>
+      <div className="invite-loading-content">
+        <div className="invite-loading-title">Алексей и Надежда</div>
+        <div className="invite-loading-initials" aria-hidden="true">
+          <span>А</span>
+          <i />
+          <span>Н</span>
+        </div>
+        <div className="invite-loading-mark" aria-hidden="true" />
+      </div>
+    </div>
+  );
 }
