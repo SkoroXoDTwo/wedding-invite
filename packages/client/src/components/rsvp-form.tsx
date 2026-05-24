@@ -15,12 +15,26 @@ const labels: Record<AttendanceStatus, string> = {
   unknown: "Пока не знаю"
 };
 
+type SavedAnswer = {
+  status: AttendanceStatus;
+  plusOne: boolean;
+};
+
 export function RsvpForm({ settings, guest, response }: Props) {
   const [status, setStatus] = useState<AttendanceStatus>(response?.status ?? "attending");
   const [plusOne, setPlusOne] = useState(response?.plus_one ?? false);
   const [enteredNames, setEnteredNames] = useState(
     response?.entered_names ?? guest?.display_name ?? ""
   );
+  const [savedAnswer, setSavedAnswer] = useState<SavedAnswer | null>(
+    response
+      ? {
+          status: response.status,
+          plusOne: response.plus_one
+        }
+      : null
+  );
+  const [isEditing, setIsEditing] = useState(!response);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -49,6 +63,27 @@ export function RsvpForm({ settings, guest, response }: Props) {
     }
 
     setMessage("Спасибо! Ваш ответ сохранен.");
+    setSavedAnswer({
+      status,
+      plusOne
+    });
+    setIsEditing(false);
+  }
+
+  if (savedAnswer && !isEditing) {
+    return (
+      <article className="rsvp-card rsvp-summary">
+        <div className="rsvp-summary-mark" aria-hidden="true">
+          ✓
+        </div>
+        <p className="rsvp-summary-kicker">Ваш ответ уже сохранен</p>
+        <h3>{labels[savedAnswer.status]}</h3>
+        {savedAnswer.plusOne ? <p className="rsvp-summary-note">Буду +1</p> : null}
+        <button className="submit-btn secondary" type="button" onClick={() => setIsEditing(true)}>
+          Изменить ответ
+        </button>
+      </article>
+    );
   }
 
   return (
@@ -99,8 +134,13 @@ export function RsvpForm({ settings, guest, response }: Props) {
       )}
 
       <button className="submit-btn" type="submit" disabled={isSaving}>
-        {isSaving ? "Отправляем..." : "Отправить"}
+        {isSaving ? "Отправляем..." : savedAnswer ? "Сохранить изменения" : "Отправить"}
       </button>
+      {savedAnswer ? (
+        <button className="submit-btn secondary" type="button" onClick={() => setIsEditing(false)}>
+          Вернуться к ответу
+        </button>
+      ) : null}
       <div className="form-status" role="status">
         {message}
       </div>
