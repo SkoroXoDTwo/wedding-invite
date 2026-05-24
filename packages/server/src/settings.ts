@@ -1,4 +1,4 @@
-import { defaultSettings, type EventSettings } from "@wedding-invite/shared";
+import { defaultSettings, type EventSettings, withFixedWeddingSettings } from "@wedding-invite/shared";
 import { query } from "./db.js";
 
 const SETTINGS_ID = "main";
@@ -14,16 +14,18 @@ export async function getEventSettings(): Promise<EventSettings> {
       return defaultSettings;
     }
 
-    return {
+    return withFixedWeddingSettings({
       ...defaultSettings,
       ...result.rows[0].content
-    };
+    });
   } catch {
     return defaultSettings;
   }
 }
 
 export async function saveEventSettings(content: EventSettings) {
+  const settings = withFixedWeddingSettings(content);
+
   return query(
     `
       insert into event_settings (id, content)
@@ -31,6 +33,6 @@ export async function saveEventSettings(content: EventSettings) {
       on conflict (id)
       do update set content = excluded.content, updated_at = now()
     `,
-    [SETTINGS_ID, JSON.stringify(content)]
+    [SETTINGS_ID, JSON.stringify(settings)]
   );
 }

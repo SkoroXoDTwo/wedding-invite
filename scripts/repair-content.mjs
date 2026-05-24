@@ -5,7 +5,7 @@ const { Pool } = pg;
 const content = {
   coupleNames: "Алексей и Надежда",
   initials: ["А", "Н"],
-  weddingDate: "2026-08-22T12:00:00+05:00",
+  weddingDate: "2026-08-22T11:00:00+05:00",
   heroDateLabel: "22 августа 2026 г.",
   guestHeading: "Дорогие гости!",
   introText:

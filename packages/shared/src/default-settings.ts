@@ -1,10 +1,29 @@
 import type { EventSettings } from "./types.js";
 
-export const defaultSettings: EventSettings = {
-  coupleNames: "Николай и Дарья",
+export const fixedWeddingSettings = {
+  coupleNames: "Алексей и Надежда",
   initials: ["А", "Н"],
-  weddingDate: "2026-11-20T12:00:00+05:00",
-  heroDateLabel: "20 ноября 2026",
+  weddingDate: "2026-08-22T11:00:00+05:00",
+  heroDateLabel: "22 августа 2026 г.",
+  accentColor: "#8a6b5a",
+  backgroundColor: "#fbfaf8",
+  textColor: "#2b2520"
+} satisfies Pick<
+  EventSettings,
+  "coupleNames" | "initials" | "weddingDate" | "heroDateLabel" | "accentColor" | "backgroundColor" | "textColor"
+>;
+
+export function withFixedWeddingSettings(settings: EventSettings): EventSettings {
+  return {
+    ...settings,
+    ...fixedWeddingSettings,
+    initials: [...fixedWeddingSettings.initials]
+  };
+}
+
+export const defaultSettings: EventSettings = {
+  ...fixedWeddingSettings,
+  initials: [...fixedWeddingSettings.initials],
   guestHeading: "Дорогие гости!",
   introText:
     "В нашей жизни предстоят счастливые перемены! Мы хотим, чтобы в этот день рядом с нами были самые близкие и дорогие для нас люди. Будем рады разделить с вами чудесный праздник в день нашей свадьбы.",

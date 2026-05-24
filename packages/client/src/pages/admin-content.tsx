@@ -1,32 +1,14 @@
 import { useEffect, useState } from "react";
-import { defaultSettings, type ContactItem, type DetailItem, type EventSettings, type TimelineItem } from "@wedding-invite/shared";
+import {
+  defaultSettings,
+  fixedWeddingSettings,
+  type ContactItem,
+  type DetailItem,
+  type EventSettings,
+  type TimelineItem,
+  withFixedWeddingSettings
+} from "@wedding-invite/shared";
 import { adminFetch } from "../components/admin-shell";
-
-function toDateTimeLocal(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60_000);
-  return local.toISOString().slice(0, 16);
-}
-
-function formatHeroDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }).format(date);
-}
 
 export default function AdminContentPage() {
   const [settings, setSettings] = useState<EventSettings>(defaultSettings);
@@ -38,7 +20,7 @@ export default function AdminContentPage() {
     adminFetch("/api/admin/settings")
       .then((response) => response.json())
       .then((data: EventSettings) => {
-        setSettings({
+        setSettings(withFixedWeddingSettings({
           ...defaultSettings,
           ...data,
           timeline: data.timeline ?? defaultSettings.timeline,
@@ -53,7 +35,7 @@ export default function AdminContentPage() {
             ...defaultSettings.dressCode,
             ...data.dressCode
           }
-        });
+        }));
       })
       .catch(() => setMessage("Не удалось загрузить настройки."));
   }, []);
@@ -83,6 +65,21 @@ export default function AdminContentPage() {
       ...current,
       timeline: current.timeline.filter((_, itemIndex) => itemIndex !== index)
     }));
+  }
+
+  function moveTimelineItem(index: number, direction: -1 | 1) {
+    setSettings((current) => {
+      const targetIndex = index + direction;
+
+      if (targetIndex < 0 || targetIndex >= current.timeline.length) {
+        return current;
+      }
+
+      const timeline = [...current.timeline];
+      [timeline[index], timeline[targetIndex]] = [timeline[targetIndex], timeline[index]];
+
+      return { ...current, timeline };
+    });
   }
 
   function patchDetail(index: number, patch: Partial<DetailItem>) {
@@ -131,16 +128,6 @@ export default function AdminContentPage() {
     }));
   }
 
-  function updateWeddingDate(value: string) {
-    const isoDate = value ? new Date(value).toISOString() : "";
-
-    setSettings((current) => ({
-      ...current,
-      weddingDate: isoDate,
-      heroDateLabel: isoDate ? formatHeroDate(isoDate) : current.heroDateLabel
-    }));
-  }
-
   async function uploadCover(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) {
@@ -176,7 +163,7 @@ export default function AdminContentPage() {
     setMessage("");
 
     try {
-      const payload: EventSettings = {
+      const payload: EventSettings = withFixedWeddingSettings({
         ...defaultSettings,
         ...settings,
         timeline: (settings.timeline ?? []).filter((item) => item.time || item.title || item.description),
@@ -190,7 +177,7 @@ export default function AdminContentPage() {
           ...defaultSettings.dressCode,
           ...settings.dressCode
         }
-      };
+      });
 
       const response = await adminFetch("/api/admin/settings", {
         method: "PUT",
@@ -210,63 +197,13 @@ export default function AdminContentPage() {
   return (
     <form className="admin-panel" onSubmit={save}>
       <h1>Контент приглашения</h1>
-      <div className="admin-grid">
-        <div className="form-field">
-          <label>Имена пары</label>
-          <input value={settings.coupleNames} onChange={(event) => patch("coupleNames", event.target.value)} />
-        </div>
-        <div className="form-field">
-          <label>Левая инициала</label>
-          <input
-            maxLength={2}
-            value={settings.initials[0] ?? ""}
-            onChange={(event) =>
-              setSettings((current) => ({
-                ...current,
-                initials: [event.target.value.toUpperCase(), current.initials[1] ?? ""]
-              }))
-            }
-          />
-        </div>
-        <div className="form-field">
-          <label>Правая инициала</label>
-          <input
-            maxLength={2}
-            value={settings.initials[1] ?? ""}
-            onChange={(event) =>
-              setSettings((current) => ({
-                ...current,
-                initials: [current.initials[0] ?? "", event.target.value.toUpperCase()]
-              }))
-            }
-          />
-        </div>
+      <div className="admin-fixed-summary">
+        <span>{fixedWeddingSettings.coupleNames}</span>
+        <span>{fixedWeddingSettings.initials.join(" ")}</span>
+        <span>{fixedWeddingSettings.heroDateLabel} 11:00</span>
       </div>
 
-      <div className="admin-grid">
-        <div className="form-field">
-          <label>Дата и время свадьбы</label>
-          <input
-            type="datetime-local"
-            value={toDateTimeLocal(settings.weddingDate)}
-            onChange={(event) => updateWeddingDate(event.target.value)}
-          />
-        </div>
-        <div className="form-field">
-          <label>Дата на обложке</label>
-          <input value={settings.heroDateLabel} onChange={(event) => patch("heroDateLabel", event.target.value)} />
-        </div>
-      </div>
-
-      <div className="admin-grid">
-        <div className="form-field">
-          <label>Цвет акцента</label>
-          <input value={settings.accentColor} onChange={(event) => patch("accentColor", event.target.value)} />
-        </div>
-        <div className="form-field">
-          <label>Цвет фона</label>
-          <input value={settings.backgroundColor} onChange={(event) => patch("backgroundColor", event.target.value)} />
-        </div>
+      <div className="admin-grid single-field">
         <div className="form-field">
           <label>URL изображения обложки</label>
           <input value={settings.coverImageUrl ?? ""} onChange={(event) => patch("coverImageUrl", event.target.value)} />
@@ -356,9 +293,29 @@ export default function AdminContentPage() {
                 <input value={item.title} onChange={(event) => patchTimeline(index, { title: event.target.value })} />
               </div>
               <div className="form-field repeat-actions">
-                <button className="admin-btn ghost" type="button" onClick={() => removeTimelineItem(index)}>
-                  Удалить
-                </button>
+                <div className="move-actions" aria-label="Перенос пункта программы">
+                  <button
+                    className="admin-btn ghost icon-btn"
+                    type="button"
+                    onClick={() => moveTimelineItem(index, -1)}
+                    disabled={index === 0}
+                    title="Перенести выше"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    className="admin-btn ghost icon-btn"
+                    type="button"
+                    onClick={() => moveTimelineItem(index, 1)}
+                    disabled={index === settings.timeline.length - 1}
+                    title="Перенести ниже"
+                  >
+                    ↓
+                  </button>
+                  <button className="admin-btn ghost" type="button" onClick={() => removeTimelineItem(index)}>
+                    Удалить
+                  </button>
+                </div>
               </div>
             </div>
             <div className="form-field">
