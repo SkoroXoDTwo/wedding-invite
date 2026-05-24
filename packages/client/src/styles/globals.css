@@ -120,11 +120,46 @@ a {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--cover-image, radial-gradient(ellipse at 50% 20%, #6f625b 0%, #2c2927 70%));
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.18), transparent 34%),
+    linear-gradient(145deg, #5d5650 0%, #9c9790 48%, #35312e 100%);
+  transform: translateZ(0);
+  z-index: -3;
+}
+
+.hero.is-cover-loading::before {
+  animation: coverGlow 2.4s ease-in-out infinite alternate;
+}
+
+.hero-cover-layer {
+  position: absolute;
+  inset: 0;
+  background: var(--cover-image);
   background-size: cover;
   background-position: center;
-  transform: translateZ(0);
+  opacity: 0;
+  transform: scale(1.018);
+  transition: opacity 900ms ease, transform 1800ms ease;
   z-index: -2;
+}
+
+.hero.is-cover-ready .hero-cover-layer {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-loader {
+  position: absolute;
+  left: calc(50% - 26px);
+  bottom: clamp(28px, 7vh, 64px);
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.2));
+  animation: spin 0.95s linear infinite;
+  z-index: 2;
 }
 
 .hero::after {
@@ -854,6 +889,16 @@ a {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes coverGlow {
+  from {
+    filter: saturate(0.86) brightness(0.92);
+  }
+
+  to {
+    filter: saturate(1.05) brightness(1.04);
   }
 }
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Countdown } from "./countdown";
 import { RsvpForm } from "./rsvp-form";
 import { RevealController } from "./reveal-controller";
@@ -11,10 +12,39 @@ type Props = {
 
 export function InvitePage({ settings, guest, response }: Props) {
   const displaySettings = withFixedWeddingSettings(settings);
-  const coverStyle = displaySettings.coverImageUrl
-    ? ({ "--cover-image": `url(${displaySettings.coverImageUrl})` } as React.CSSProperties)
+  const [loadedCoverUrl, setLoadedCoverUrl] = useState(displaySettings.coverImageUrl ? "" : undefined);
+  const isCoverLoading = Boolean(displaySettings.coverImageUrl && loadedCoverUrl !== displaySettings.coverImageUrl);
+  const coverStyle = loadedCoverUrl
+    ? ({ "--cover-image": `url(${loadedCoverUrl})` } as React.CSSProperties)
     : undefined;
   const greetingTitle = guest?.salutation || displaySettings.guestHeading;
+
+  useEffect(() => {
+    if (!displaySettings.coverImageUrl) {
+      setLoadedCoverUrl(undefined);
+      return;
+    }
+
+    let isActive = true;
+    setLoadedCoverUrl("");
+
+    const image = new Image();
+    image.onload = () => {
+      if (isActive) {
+        setLoadedCoverUrl(displaySettings.coverImageUrl);
+      }
+    };
+    image.onerror = () => {
+      if (isActive) {
+        setLoadedCoverUrl(undefined);
+      }
+    };
+    image.src = displaySettings.coverImageUrl;
+
+    return () => {
+      isActive = false;
+    };
+  }, [displaySettings.coverImageUrl]);
 
   return (
     <main
@@ -28,7 +58,9 @@ export function InvitePage({ settings, guest, response }: Props) {
       }
     >
       <RevealController />
-      <section className="hero" style={coverStyle}>
+      <section className={`hero${isCoverLoading ? " is-cover-loading" : ""}${loadedCoverUrl ? " is-cover-ready" : ""}`}>
+        <div className="hero-cover-layer" style={coverStyle} aria-hidden="true" />
+        {isCoverLoading ? <div className="hero-loader" aria-hidden="true" /> : null}
         <div className="hero-inner">
           <div className="initials" aria-hidden="true">
             <span>{displaySettings.initials[0] ?? "А"}</span>
